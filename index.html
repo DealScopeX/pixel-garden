@@ -1,0 +1,109 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>PixelGarden — Interactive Pixel Garden</title>
+  <style>
+    :root{
+      --bg:#0f1724;
+      --card:#0b1220;
+      --muted:#9aa4b2;
+      --accent:#77c28b;
+      --tile-size:28px;
+    }
+    *{box-sizing:border-box}
+    body{
+      margin:0;
+      font-family:Inter, system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial;
+      background:linear-gradient(180deg,#081021 0%, #071226 100%);
+      color:#e6eef6;
+      display:flex;
+      align-items:flex-start;
+      justify-content:center;
+      min-height:100vh;
+      padding:28px;
+    }
+    .app{
+      width:100%;
+      max-width:980px;
+      background:linear-gradient(180deg, rgba(255,255,255,0.02), rgba(255,255,255,0.01));
+      border-radius:12px;
+      padding:18px;
+      box-shadow:0 8px 30px rgba(2,6,23,0.6);
+    }
+    header{
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      gap:12px;
+      margin-bottom:12px;
+    }
+    header h1{
+      font-size:18px;
+      margin:0;
+      letter-spacing:0.2px;
+    }
+    .meta{color:var(--muted); font-size:13px}
+    .controls{
+      display:flex;
+      gap:8px;
+      align-items:center;
+    }
+    #garden{
+      width:100%;
+      background:rgba(255,255,255,0.02);
+      border-radius:10px;
+      padding:12px;
+      min-height:360px;
+      display:grid;
+      align-content:start;
+      gap:6px;
+      justify-content:center;
+    }
+    footer{margin-top:12px; color:var(--muted); font-size:13px;}
+    .hint{color:var(--muted); font-size:13px; margin-top:8px;}
+    button{
+      background:transparent;
+      border:1px solid rgba(255,255,255,0.06);
+      color:inherit;
+      padding:8px 10px;
+      border-radius:8px;
+      cursor:pointer;
+      backdrop-filter: blur(3px);
+    }
+    input[type=range]{width:120px}
+    .small{font-size:13px; padding:6px 8px}
+  </style>
+</head>
+<body>
+  <div class="app">
+    <header>
+      <div>
+        <h1>PixelGarden</h1>
+        <div class="meta">Plant seeds. Watch them grow. Click to harvest.</div>
+      </div>
+
+      <div class="controls">
+        <!-- Controls will be fully added in later commits -->
+        <div class="meta">Loading controls…</div>
+      </div>
+    </header>
+
+    <main>
+      <div id="garden" aria-label="Pixel garden" role="grid">
+        <!-- Grid tiles will be injected here by script.js -->
+      </div>
+
+      <div class="hint">Tip: Click a tile to plant a seed. Seeds slowly grow into blooms.</div>
+    </main>
+
+    <footer>
+      PixelGarden • Local only • No external libs
+    </footer>
+  </div>
+
+  <!-- script is linked; will be added in next commit -->
+  <script src="script.js" defer></script>
+</body>
+</html>
