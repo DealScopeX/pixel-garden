@@ -8,15 +8,16 @@
     :root{
       --bg:#0f1724;
       --card:#0b1220;
-      --muted:#9aa4b2;
+      --muted:#98a6b6;
       --accent:#77c28b;
       --tile-size:28px;
+      --gap:6px;
     }
     *{box-sizing:border-box}
     body{
       margin:0;
       font-family:Inter, system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial;
-      background:linear-gradient(180deg,#081021 0%, #071226 100%);
+      background:linear-gradient(180deg,#04101a 0%, #071226 100%);
       color:#e6eef6;
       display:flex;
       align-items:flex-start;
@@ -49,17 +50,19 @@
       display:flex;
       gap:8px;
       align-items:center;
+      flex-wrap:wrap;
     }
     #garden{
       width:100%;
-      background:rgba(255,255,255,0.02);
+      background:linear-gradient(180deg, rgba(255,255,255,0.01), rgba(255,255,255,0.005));
       border-radius:10px;
       padding:12px;
       min-height:360px;
       display:grid;
       align-content:start;
-      gap:6px;
+      gap:var(--gap);
       justify-content:center;
+      margin-top:6px;
     }
     footer{margin-top:12px; color:var(--muted); font-size:13px;}
     .hint{color:var(--muted); font-size:13px; margin-top:8px;}
@@ -71,9 +74,28 @@
       border-radius:8px;
       cursor:pointer;
       backdrop-filter: blur(3px);
+      transition:transform 120ms ease, opacity 120ms ease;
     }
-    input[type=range]{width:120px}
+    button:hover{transform:translateY(-2px)}
+    .primary{
+      background:linear-gradient(180deg,var(--accent), #58aa6d);
+      color:#07121a;
+      border:none;
+      font-weight:600;
+      padding:8px 12px;
+    }
+    input[type=range]{width:140px}
     .small{font-size:13px; padding:6px 8px}
+    .top-row{display:flex; gap:12px; align-items:center}
+    .control-group{display:flex; gap:8px; align-items:center}
+    .tile{
+      display:inline-grid;
+      place-items:center;
+      user-select:none;
+    }
+    .tile:hover{filter:brightness(1.06); transform:scale(1.03)}
+    .muted-btn{background:transparent; border:1px solid rgba(255,255,255,0.035);}
+    .inline-label{font-size:13px; color:var(--muted); margin-left:6px}
   </style>
 </head>
 <body>
@@ -81,21 +103,35 @@
     <header>
       <div>
         <h1>PixelGarden</h1>
-        <div class="meta">Plant seeds. Watch them grow. Click to harvest.</div>
+        <div class="meta">Plant seeds. Watch them grow. Click to harvest. Space toggles play/pause.</div>
       </div>
 
       <div class="controls">
-        <!-- Controls will be fully added in later commits -->
-        <div class="meta">Loading controls…</div>
+        <div class="control-group">
+          <button id="playPauseBtn" class="small">Pause</button>
+          <button id="randomBtn" class="small muted-btn">Random</button>
+          <button id="clearBtn" class="small muted-btn">Clear</button>
+        </div>
+
+        <div class="control-group">
+          <label class="inline-label">Grid</label>
+          <input id="sizeRange" type="range" min="8" max="38" value="16" />
+          <span id="sizeLabel" class="inline-label">16×16</span>
+        </div>
+
+        <div class="control-group">
+          <button id="saveBtn" class="small">Save</button>
+          <button id="loadBtn" class="small muted-btn">Load</button>
+        </div>
       </div>
     </header>
 
     <main>
       <div id="garden" aria-label="Pixel garden" role="grid">
-        <!-- Grid tiles will be injected here by script.js -->
+        <!-- Grid tiles injected by script.js -->
       </div>
 
-      <div class="hint">Tip: Click a tile to plant a seed. Seeds slowly grow into blooms.</div>
+      <div class="hint">Tip: Click tiles to plant or harvest. Use controls to randomize or resize.</div>
     </main>
 
     <footer>
@@ -103,7 +139,69 @@
     </footer>
   </div>
 
-  <!-- script is linked; will be added in next commit -->
   <script src="script.js" defer></script>
+  <script>
+    // wire up controls to PixelGarden (exposed by script.js)
+    document.addEventListener('DOMContentLoaded', () => {
+      const pg = window.PixelGarden;
+      const playPauseBtn = document.getElementById('playPauseBtn');
+      const randomBtn = document.getElementById('randomBtn');
+      const clearBtn = document.getElementById('clearBtn');
+      const sizeRange = document.getElementById('sizeRange');
+      const sizeLabel = document.getElementById('sizeLabel');
+      const saveBtn = document.getElementById('saveBtn');
+      const loadBtn = document.getElementById('loadBtn');
+
+      function updatePlayText() {
+        playPauseBtn.textContent = pg.state.running ? 'Pause' : 'Play';
+      }
+
+      playPauseBtn.addEventListener('click', () => {
+        pg.state.running = !pg.state.running;
+        updatePlayText();
+      });
+
+      randomBtn.addEventListener('click', () => {
+        pg.randomize();
+      });
+
+      clearBtn.addEventListener('click', () => {
+        if (confirm('Clear the garden? This cannot be undone.')) {
+          pg.clearGarden();
+        }
+      });
+
+      sizeRange.addEventListener('input', (e) => {
+        const s = Number(e.target.value);
+        sizeLabel.textContent = `${s}×${s}`;
+      });
+
+      sizeRange.addEventListener('change', (e) => {
+        const s = Number(e.target.value);
+        // create a fresh grid size (resets content)
+        pg.state.size = s;
+        pg.state.tiles = new Array(s * s).fill(0).map(() => ({growth: 0, planted: false}));
+        pg.createGrid(s);
+        pg.save();
+      });
+
+      saveBtn.addEventListener('click', () => {
+        pg.save();
+        saveBtn.textContent = 'Saved';
+        setTimeout(()=>saveBtn.textContent='Save',900);
+      });
+
+      loadBtn.addEventListener('click', () => {
+        pg.load();
+        pg.createGrid(pg.state.size);
+        pg.save();
+      });
+
+      // initialize UI values
+      sizeRange.value = pg.state.size || 16;
+      sizeLabel.textContent = `${pg.state.size}×${pg.state.size}`;
+      updatePlayText();
+    });
+  </script>
 </body>
 </html>
